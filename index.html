@@ -15,6 +15,8 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+        .modal { display: none; }
+        .modal.active { display: flex; }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-900 overflow-hidden">
@@ -35,7 +37,7 @@
                 </button>
                 <button onclick="switchTab('qs')" id="nav-qs" class="nav-item flex items-center w-full p-4 space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                     <i data-lucide="coins" class="w-5 h-5"></i>
-                    <span class="font-medium">QS / Unit Rate</span>
+                    <span class="font-medium">QS / Manual BoQ</span>
                 </button>
                 <button onclick="switchTab('qa')" id="nav-qa" class="nav-item flex items-center w-full p-4 space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                     <i data-lucide="clipboard-check" class="w-5 h-5"></i>
@@ -43,7 +45,7 @@
                 </button>
                 <button onclick="switchTab('calc')" id="nav-calc" class="nav-item flex items-center w-full p-4 space-x-3 text-slate-400 hover:bg-slate-800 hover:text-white transition-all">
                     <i data-lucide="calculator" class="w-5 h-5"></i>
-                    <span class="font-medium">Spec Calculator</span>
+                    <span class="font-medium">Versatile Calc</span>
                 </button>
             </nav>
 
@@ -51,8 +53,8 @@
                 <div class="flex items-center space-x-3 p-2">
                     <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-indigo-600 to-blue-400 flex items-center justify-center text-white font-bold text-xs shadow-lg">SA</div>
                     <div>
-                        <p class="text-xs font-bold text-white">Lead Auditor</p>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-tighter font-semibold">Senior QS / QA</p>
+                        <p class="text-xs font-bold text-white">Manual Input Mode</p>
+                        <p class="text-[10px] text-slate-500 uppercase tracking-tighter font-semibold">Project Controller</p>
                     </div>
                 </div>
             </div>
@@ -62,18 +64,19 @@
         <main class="flex-1 flex flex-col overflow-hidden">
             <!-- Header -->
             <header class="bg-white border-b border-slate-200 px-8 py-4 z-10 flex justify-between items-center shadow-sm">
-                <div>
-                    <h2 class="text-lg font-bold text-slate-800 uppercase tracking-tight">Metropolis Commercial Hub</h2>
-                    <div class="flex items-center space-x-2">
-                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span>
-                        <p class="text-xs text-slate-500 font-medium tracking-wide">Ref: PJ-2024-089 • BIM: Active (LOD 400)</p>
+                <div class="flex items-center space-x-4">
+                    <div class="p-2 bg-indigo-50 rounded-lg text-indigo-600">
+                        <i data-lucide="folder-open" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <input type="text" value="New Project Analysis" class="text-lg font-bold text-slate-800 uppercase tracking-tight bg-transparent border-none focus:ring-0 w-64" id="project-title-input">
+                        <p class="text-xs text-slate-500 font-medium tracking-wide">Dynamic Workspace • Manual Entry Enabled</p>
                     </div>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <div class="relative hidden md:block">
-                        <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 w-4 h-4"></i>
-                        <input type="text" placeholder="Audit search..." class="pl-10 pr-4 py-2 bg-slate-100 border-none rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 w-64">
-                    </div>
+                <div class="flex items-center space-x-3">
+                    <button onclick="resetData()" class="text-xs font-bold text-red-500 hover:bg-red-50 px-3 py-2 rounded-lg transition-all flex items-center">
+                        <i data-lucide="trash-2" class="w-4 h-4 mr-1"></i> Clear All
+                    </button>
                 </div>
             </header>
 
@@ -82,77 +85,57 @@
                 
                 <!-- DASHBOARD TAB -->
                 <div id="tab-dashboard" class="tab-content active space-y-8 animate-in fade-in duration-500">
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Forecast Account</p>
+                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Total Manual Forecast</p>
                             <h3 id="dash-total" class="text-2xl font-black text-slate-800">$0.00</h3>
-                            <div class="mt-2 flex items-center text-xs font-bold text-emerald-600">
-                                <i data-lucide="trending-up" class="w-3.5 h-3.5 mr-1"></i> +2.4% vs Base
+                            <div class="mt-2 flex items-center text-xs font-bold text-indigo-600">
+                                <i data-lucide="info" class="w-3.5 h-3.5 mr-1"></i> Sum of all active BoQ lines
                             </div>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Spent to Date</p>
-                            <h3 class="text-2xl font-black text-slate-800">$2.15M</h3>
-                            <p class="text-xs text-slate-400 mt-2">43% of total budget</p>
+                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Item Count</p>
+                            <h3 id="dash-count" class="text-2xl font-black text-slate-800">0</h3>
+                            <p class="text-xs text-slate-400 mt-2">Active line items in register</p>
                         </div>
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">QA Pass Rate</p>
-                            <h3 class="text-2xl font-black text-indigo-600">94.2%</h3>
-                            <p class="text-xs text-slate-400 mt-2">Target: 95.0%</p>
-                        </div>
-                        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Variations Active</p>
-                            <h3 class="text-2xl font-black text-amber-600">12</h3>
-                            <p class="text-xs text-slate-400 mt-2">$84k pending approval</p>
+                            <p class="text-[10px] font-black uppercase text-slate-400 mb-1">Highest Cost Trade</p>
+                            <h3 id="dash-highest" class="text-2xl font-black text-emerald-600">—</h3>
+                            <p class="text-xs text-slate-400 mt-2">Primary cost driver</p>
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        <div class="bg-white p-6 rounded-2xl border border-slate-200">
-                            <h3 class="font-bold mb-6 flex items-center"><i data-lucide="bar-chart-3" class="mr-2 text-indigo-500 w-5 h-5"></i> Trade Cost Distribution</h3>
-                            <div id="trade-distribution" class="space-y-6">
-                                <!-- Generated via JS -->
-                            </div>
-                        </div>
-                        <div class="bg-slate-900 p-8 rounded-2xl text-white relative overflow-hidden">
-                            <div class="absolute top-0 right-0 p-4 opacity-10"><i data-lucide="hard-hat" class="w-32 h-32"></i></div>
-                            <h3 class="font-bold mb-4 flex items-center text-amber-400 uppercase tracking-widest text-xs">
-                                <i data-lucide="alert-triangle" class="mr-2 w-4 h-4"></i> Auditor's Risks & Insights
-                            </h3>
-                            <div class="space-y-4 relative z-10">
-                                <div class="p-4 bg-white/5 border border-white/10 rounded-xl">
-                                    <p class="text-xs font-bold text-indigo-300 mb-1">Material Volatility Alert</p>
-                                    <p class="text-sm opacity-80 italic">"Global steel indices show a 12% rise. Current Unit Rate for Rebar ($980) may need adjustment in Q3."</p>
-                                </div>
-                                <div class="p-4 bg-white/5 border border-white/10 rounded-xl">
-                                    <p class="text-xs font-bold text-emerald-400 mb-1">QA Productivity Sync</p>
-                                    <p class="text-sm opacity-80 italic">"Batch 4 Concrete passed all 28-day strength tests. Retentions for Zone B can be processed."</p>
-                                </div>
-                            </div>
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200">
+                        <h3 class="font-bold mb-6 flex items-center"><i data-lucide="bar-chart-3" class="mr-2 text-indigo-500 w-5 h-5"></i> Cost Breakdown by Manual Input</h3>
+                        <div id="trade-distribution" class="space-y-6">
+                            <!-- Generated via JS -->
                         </div>
                     </div>
                 </div>
 
                 <!-- QS / BOQ TAB -->
                 <div id="tab-qs" class="tab-content space-y-6">
-                    <!-- List View -->
                     <div id="qs-list-view" class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                         <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                             <div>
-                                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Bill of Quantities (BoQ)</h3>
-                                <p class="text-xs text-slate-400 font-bold">Consolidated Measurement & Rates</p>
+                                <h3 class="font-black text-slate-800 uppercase tracking-tighter">Project Cost Register</h3>
+                                <p class="text-xs text-slate-400 font-bold">Add, edit, or delete items for manual calculation</p>
                             </div>
+                            <button onclick="openAddItemModal()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-widest flex items-center hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-100">
+                                <i data-lucide="plus" class="mr-2 w-4 h-4"></i> Add Manual Item
+                            </button>
                         </div>
                         <div class="overflow-x-auto">
                             <table class="w-full text-left">
                                 <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
                                     <tr>
-                                        <th class="px-6 py-4">Item Description</th>
+                                        <th class="px-6 py-4">Description</th>
                                         <th class="px-6 py-4 text-center">Unit</th>
                                         <th class="px-6 py-4 text-center">Quantity</th>
                                         <th class="px-6 py-4 text-center">Rate ($)</th>
                                         <th class="px-6 py-4 text-right">Amount ($)</th>
-                                        <th class="px-6 py-4 text-center">Analysis</th>
+                                        <th class="px-6 py-4 text-center">Audit</th>
+                                        <th class="px-6 py-4 text-center">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody id="boq-body" class="divide-y divide-slate-100">
@@ -162,11 +145,14 @@
                         </div>
                     </div>
 
-                    <!-- URA Detail View (Hidden by default) -->
+                    <!-- URA Detail View (MANUAL URA EDITOR) -->
                     <div id="qs-ura-view" class="hidden max-w-5xl mx-auto">
-                        <button onclick="toggleBoQView('list')" class="flex items-center text-xs font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 mb-6 transition-colors">
-                            <i data-lucide="arrow-left" class="mr-2 w-4 h-4"></i> Back to BoQ
-                        </button>
+                        <div class="flex justify-between items-center mb-6">
+                            <button onclick="toggleBoQView('list')" class="flex items-center text-xs font-black uppercase tracking-widest text-slate-400 hover:text-indigo-600 transition-colors">
+                                <i data-lucide="arrow-left" class="mr-2 w-4 h-4"></i> Back to Register
+                            </button>
+                            <span class="text-[10px] font-black bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full uppercase">Unit Rate Audit Mode</span>
+                        </div>
                         <div id="ura-container" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                             <!-- Generated via JS -->
                         </div>
@@ -175,86 +161,48 @@
 
                 <!-- QA TAB -->
                 <div id="tab-qa" class="tab-content space-y-6">
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Site Compliance & QA Registry</h3>
-                        <div class="flex items-center space-x-2 bg-white px-4 py-2 rounded-xl border border-slate-200">
-                          <div class="w-2 h-2 rounded-full bg-emerald-500"></div>
-                          <span class="text-[10px] font-black uppercase text-slate-500">Live Audit Sync</span>
+                    <div class="bg-white p-12 rounded-2xl border border-slate-200 text-center space-y-4">
+                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto text-slate-400">
+                            <i data-lucide="clipboard-check" class="w-8 h-8"></i>
                         </div>
-                    </div>
-                    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
-                        <table class="w-full text-left">
-                            <thead class="bg-slate-50 text-[10px] font-black text-slate-400 uppercase tracking-widest border-b border-slate-100">
-                                <tr>
-                                    <th class="px-6 py-4">Inspection Reference</th>
-                                    <th class="px-6 py-4 text-center">Outcome</th>
-                                    <th class="px-6 py-4 text-center">Auditor</th>
-                                    <th class="px-6 py-4 text-center">Audit Date</th>
-                                    <th class="px-6 py-4 text-right">Verification</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-slate-100">
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-6 py-4 font-bold text-slate-700">Foundation Reinforcement Compliance<p class="text-[9px] text-slate-400 font-bold uppercase mt-1">NCR-101</p></td>
-                                    <td class="px-6 py-4 text-center"><span class="bg-emerald-100 text-emerald-700 px-2 py-1 rounded text-[10px] font-black">PASSED</span></td>
-                                    <td class="px-6 py-4 text-center text-xs font-semibold text-slate-500">J. Smith</td>
-                                    <td class="px-6 py-4 text-center text-xs text-slate-500">2024-05-12</td>
-                                    <td class="px-6 py-4 text-right"><button class="text-[10px] font-black uppercase text-indigo-600 hover:underline">Download Cert</button></td>
-                                </tr>
-                                <tr class="hover:bg-slate-50">
-                                    <td class="px-6 py-4 font-bold text-slate-700">Concrete Slump Test Results<p class="text-[9px] text-slate-400 font-bold uppercase mt-1">NCR-102</p></td>
-                                    <td class="px-6 py-4 text-center"><span class="bg-amber-100 text-amber-700 px-2 py-1 rounded text-[10px] font-black">WARNING</span></td>
-                                    <td class="px-6 py-4 text-center text-xs font-semibold text-slate-500">A. Chen</td>
-                                    <td class="px-6 py-4 text-center text-xs text-slate-500">2024-05-14</td>
-                                    <td class="px-6 py-4 text-right"><button class="text-[10px] font-black uppercase text-indigo-600 hover:underline">Download Cert</button></td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <h3 class="text-xl font-bold">Quality Checklists</h3>
+                        <p class="text-slate-500 max-w-sm mx-auto">Link manual project inputs to compliance standards and non-conformance tracking.</p>
+                        <button class="bg-slate-900 text-white px-6 py-2 rounded-lg text-sm font-bold uppercase tracking-widest">Create Site Inspection</button>
                     </div>
                 </div>
 
-                <!-- CALC TAB -->
+                <!-- CALC TAB (VERSATILE MODE) -->
                 <div id="tab-calc" class="tab-content max-w-4xl mx-auto">
                     <div class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200">
-                        <div class="flex items-center space-x-4 mb-10">
-                            <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-indigo-100">
-                                <i data-lucide="calculator" class="w-6 h-6"></i>
+                        <div class="flex items-center justify-between mb-10">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 bg-indigo-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                                    <i data-lucide="calculator" class="w-6 h-6"></i>
+                                </div>
+                                <div>
+                                    <h3 class="text-2xl font-black text-slate-800 uppercase">Manual Measurement Tool</h3>
+                                    <p class="text-sm text-slate-500">Versatile calculator for multi-discipline inputs</p>
+                                </div>
                             </div>
-                            <div>
-                                <h3 class="text-2xl font-black text-slate-800 tracking-tight uppercase">Structural Measurement Engine</h3>
-                                <p class="text-sm text-slate-500 font-medium">Calculations based on AS/NZS/ISO standard methods</p>
+                            <div class="flex space-x-1 bg-slate-100 p-1 rounded-xl">
+                                <button onclick="setCalcMode('vol')" id="mode-vol" class="px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-indigo-600">Volume (m³)</button>
+                                <button onclick="setCalcMode('area')" id="mode-area" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">Area (m²)</button>
+                                <button onclick="setCalcMode('linear')" id="mode-linear" class="px-4 py-2 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all">Linear (m)</button>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
-                            <div class="space-y-6">
-                                <div>
-                                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block">Member Length (m)</label>
-                                    <input type="number" id="calc-length" value="12" oninput="runCalculations()" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xl font-black text-slate-700">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block">Member Width (m)</label>
-                                    <input type="number" id="calc-width" value="8" oninput="runCalculations()" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xl font-black text-slate-700">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-3 block">Height / Depth (m)</label>
-                                    <input type="number" id="calc-depth" value="0.4" oninput="runCalculations()" class="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-indigo-500 outline-none text-xl font-black text-slate-700">
-                                </div>
+                            <div class="space-y-6" id="calc-inputs-container">
+                                <!-- Generated based on Mode -->
                             </div>
-                            <div class="bg-slate-900 rounded-3xl p-10 text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
-                                <p class="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">Net Measurement (SMM)</p>
-                                <h4 id="calc-output-vol" class="text-7xl font-black mb-4">38.40</h4>
-                                <p class="text-xl font-light opacity-50 uppercase tracking-widest mb-8">Cubic Meters</p>
-                                <div class="w-full grid grid-cols-2 gap-4">
-                                    <div class="p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                        <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Gross (+5% Waste)</p>
-                                        <p id="calc-output-gross" class="text-lg font-black text-emerald-400">40.32</p>
-                                    </div>
-                                    <div class="p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                        <p class="text-[9px] font-bold text-slate-500 uppercase mb-1">Est. Cost (Live)</p>
-                                        <p id="calc-output-cost" class="text-lg font-black text-amber-400">$7,123</p>
-                                    </div>
-                                </div>
+                            <div class="bg-indigo-600 rounded-3xl p-10 text-white flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                <p class="text-[10px] font-black uppercase tracking-[0.3em] opacity-70 mb-4">Calculated Result</p>
+                                <h4 id="calc-output-main" class="text-7xl font-black mb-4">0.00</h4>
+                                <p id="calc-output-unit" class="text-xl font-light opacity-50 uppercase tracking-widest mb-8">m³</p>
+                                
+                                <button onclick="pushCalcToNewItem()" class="w-full bg-white text-indigo-600 py-4 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-50 transition-all shadow-xl">
+                                    Push to Manual BoQ
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -264,49 +212,45 @@
         </main>
     </div>
 
+    <!-- MODAL: ADD ITEM -->
+    <div id="add-item-modal" class="modal fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 animate-in zoom-in-95 duration-200">
+            <h3 class="text-xl font-black text-slate-800 mb-6 uppercase">New Manual Entry</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Description</label>
+                    <input type="text" id="new-desc" placeholder="e.g., Ceramic Wall Tiles" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Unit</label>
+                        <select id="new-unit" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-medium">
+                            <option value="m³">m³ (Volume)</option>
+                            <option value="m²">m² (Area)</option>
+                            <option value="m">m (Linear)</option>
+                            <option value="kg">kg (Weight)</option>
+                            <option value="Ton">Ton</option>
+                            <option value="Item">Item / LS</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-400 uppercase mb-1 block">Base Rate ($)</label>
+                        <input type="number" id="new-rate" placeholder="0.00" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-medium text-right">
+                    </div>
+                </div>
+            </div>
+            <div class="flex space-x-3 mt-8">
+                <button onclick="closeAddItemModal()" class="flex-1 px-6 py-3 border border-slate-200 rounded-xl text-xs font-bold uppercase text-slate-500 hover:bg-slate-50 transition-all">Cancel</button>
+                <button onclick="addNewItem()" class="flex-1 px-6 py-3 bg-indigo-600 rounded-xl text-xs font-bold uppercase text-white hover:bg-indigo-700 transition-all">Add to Register</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // --- DATA ---
-        let lineItems = [
-            { 
-                id: 1, 
-                desc: 'Substructure Concrete (Grade 35)', 
-                unit: 'm³', 
-                qty: 450, 
-                rate: 185.50, 
-                category: 'Structural',
-                breakdown: {
-                    material: [
-                        { item: 'Ready-mix Concrete G35', qty: 1.05, rate: 120, total: 126 },
-                        { item: 'Curing Compound', qty: 0.1, rate: 15, total: 1.5 }
-                    ],
-                    labor: [
-                        { role: 'Concretor', hours: 1.5, rate: 22, total: 33 },
-                        { role: 'General Labor', hours: 0.5, rate: 18, total: 9 }
-                    ],
-                    plant: [
-                        { item: 'Concrete Pump (Shared)', hours: 0.2, rate: 50, total: 10 },
-                        { item: 'Vibrator/Tools', hours: 1, rate: 6, total: 6 }
-                    ],
-                    markup: 15
-                }
-            },
-            { 
-                id: 2, 
-                desc: 'High Tensile Steel Reinforcement', 
-                unit: 'Ton', 
-                qty: 120, 
-                rate: 980.00, 
-                category: 'Structural',
-                breakdown: {
-                    material: [{ item: 'D20/D16 Steel Bars', qty: 1.03, rate: 820, total: 844.6 }],
-                    labor: [{ role: 'Steel Fixer', hours: 8, rate: 25, total: 200 }],
-                    plant: [{ item: 'Bar Bender/Cutter', hours: 2, rate: 15, total: 30 }],
-                    markup: 10
-                }
-            },
-            { id: 3, desc: 'Internal Masonry Works', unit: 'm²', qty: 2200, rate: 45, category: 'Architectural' },
-            { id: 4, desc: 'MEP First Fix - Electrical', unit: 'Item', qty: 1, rate: 125000, category: 'MEP' },
-        ];
+        // --- DATA STATE ---
+        let lineItems = []; // Start empty for "Manual Input" focus
+        let calcMode = 'vol';
+        let currentURAId = null;
 
         // --- CORE LOGIC ---
         function switchTab(tabId) {
@@ -317,59 +261,212 @@
             const navBtn = document.getElementById(`nav-${tabId}`);
             navBtn.className = 'nav-item flex items-center w-full p-4 space-x-3 text-indigo-400 bg-slate-800 border-r-4 border-indigo-400 transition-all';
             
-            if (tabId === 'qs') renderBoQ();
+            if (tabId === 'qs') {
+                renderBoQ();
+                toggleBoQView('list');
+            }
             if (tabId === 'dashboard') updateDashboard();
+            if (tabId === 'calc') setCalcMode(calcMode);
         }
 
         function updateDashboard() {
             const total = lineItems.reduce((acc, item) => acc + (item.qty * item.rate), 0);
-            document.getElementById('dash-total').innerText = `$${(total / 1000000).toFixed(2)}M`;
+            const count = lineItems.length;
+            
+            document.getElementById('dash-total').innerText = `$${total.toLocaleString(undefined, {minimumFractionDigits: 2})}`;
+            document.getElementById('dash-count').innerText = count;
+            
+            // Find highest cost
+            let highest = "—";
+            if (count > 0) {
+                const maxItem = [...lineItems].sort((a,b) => (b.qty * b.rate) - (a.qty * a.rate))[0];
+                highest = maxItem.desc;
+            }
+            document.getElementById('dash-highest').innerText = highest;
             
             const distContainer = document.getElementById('trade-distribution');
-            distContainer.innerHTML = lineItems.map(item => `
-                <div>
-                    <div class="flex justify-between text-xs mb-2">
-                        <span class="font-bold text-slate-600">${item.desc}</span>
-                        <span class="font-black text-slate-900">$${(item.qty * item.rate).toLocaleString()}</span>
+            if (count === 0) {
+                distContainer.innerHTML = `<p class="text-center text-slate-400 py-12 italic text-sm">No data entered. Head to "Manual BoQ" to start.</p>`;
+            } else {
+                distContainer.innerHTML = lineItems.map(item => `
+                    <div>
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="font-bold text-slate-600">${item.desc}</span>
+                            <span class="font-black text-slate-900">$${(item.qty * item.rate).toLocaleString()}</span>
+                        </div>
+                        <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-500 rounded-full" style="width: ${total > 0 ? (item.qty * item.rate / total * 100) : 0}%"></div>
+                        </div>
                     </div>
-                    <div class="h-2 w-full bg-slate-100 rounded-full overflow-hidden">
-                        <div class="h-full bg-indigo-500 rounded-full" style="width: ${Math.min((item.qty * item.rate) / 200000 * 100, 100)}%"></div>
-                    </div>
-                </div>
-            `).join('');
+                `).join('');
+            }
             lucide.createIcons();
         }
 
+        // --- BOQ MANAGEMENT ---
         function renderBoQ() {
             const body = document.getElementById('boq-body');
+            if (lineItems.length === 0) {
+                body.innerHTML = `<tr><td colspan="7" class="py-12 text-center text-slate-400 italic text-sm">No entries found. Click "Add Manual Item" to begin.</td></tr>`;
+                return;
+            }
             body.innerHTML = lineItems.map(item => `
                 <tr class="hover:bg-indigo-50/30 transition-colors group">
                     <td class="px-6 py-4">
-                        <span class="block font-bold text-slate-700 text-sm">${item.desc}</span>
-                        <span class="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-black uppercase mt-1 inline-block">${item.category}</span>
+                        <input type="text" value="${item.desc}" onchange="updateItemField(${item.id}, 'desc', this.value)" class="bg-transparent border-none focus:ring-1 focus:ring-indigo-300 rounded font-bold text-slate-700 text-sm w-full">
                     </td>
                     <td class="px-6 py-4 text-center text-xs font-bold text-slate-500">${item.unit}</td>
                     <td class="px-6 py-4 text-center">
-                        <input type="number" value="${item.qty}" onchange="updateQty(${item.id}, this.value)" class="w-20 text-center bg-transparent border-none focus:ring-1 focus:ring-indigo-300 rounded font-bold text-slate-700">
+                        <input type="number" value="${item.qty}" onchange="updateItemField(${item.id}, 'qty', this.value)" class="w-20 text-center bg-transparent border-none focus:ring-1 focus:ring-indigo-300 rounded font-bold text-slate-700">
                     </td>
-                    <td class="px-6 py-4 text-center font-bold text-slate-700">$${item.rate.toFixed(2)}</td>
-                    <td class="px-6 py-4 text-right font-black text-indigo-600">$${(item.qty * item.rate).toLocaleString()}</td>
                     <td class="px-6 py-4 text-center">
-                        ${item.breakdown ? `
-                            <button onclick="viewURA(${item.id})" class="p-2 hover:bg-white rounded-lg text-indigo-600 shadow-sm border border-transparent hover:border-indigo-100 transition-all">
-                                <i data-lucide="chevron-right" class="w-5 h-5"></i>
-                            </button>
-                        ` : '<i data-lucide="info" class="w-4 h-4 text-slate-300 mx-auto"></i>'}
+                        <input type="number" value="${item.rate}" onchange="updateItemField(${item.id}, 'rate', this.value)" class="w-24 text-center bg-transparent border-none focus:ring-1 focus:ring-indigo-300 rounded font-bold text-slate-700">
+                    </td>
+                    <td class="px-6 py-4 text-right font-black text-indigo-600">$${(item.qty * item.rate).toLocaleString(undefined, {minimumFractionDigits: 2})}</td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="viewURA(${item.id})" class="p-2 hover:bg-white rounded-lg text-indigo-600 shadow-sm border border-transparent hover:border-indigo-100 transition-all">
+                            <i data-lucide="layers-3" class="w-4 h-4"></i>
+                        </button>
+                    </td>
+                    <td class="px-6 py-4 text-center">
+                        <button onclick="deleteItem(${item.id})" class="text-slate-300 hover:text-red-500 transition-colors">
+                            <i data-lucide="trash-2" class="w-4 h-4"></i>
+                        </button>
                     </td>
                 </tr>
             `).join('');
             lucide.createIcons();
         }
 
-        function updateQty(id, val) {
+        function updateItemField(id, field, val) {
             const item = lineItems.find(i => i.id === id);
-            if (item) item.qty = parseFloat(val) || 0;
+            if (item) {
+                item[field] = (field === 'qty' || field === 'rate') ? parseFloat(val) || 0 : val;
+            }
             renderBoQ();
+            updateDashboard();
+        }
+
+        function deleteItem(id) {
+            lineItems = lineItems.filter(i => i.id !== id);
+            renderBoQ();
+            updateDashboard();
+        }
+
+        function resetData() {
+            if(confirm("Are you sure? This will delete all manual entries.")) {
+                lineItems = [];
+                renderBoQ();
+                updateDashboard();
+            }
+        }
+
+        // --- URA EDITOR (MANUAL RATE BUILDER) ---
+        function viewURA(id) {
+            currentURAId = id;
+            const item = lineItems.find(i => i.id === id);
+            
+            // Ensure breakdown exists
+            if (!item.breakdown) {
+                item.breakdown = { material: [], labor: [], plant: [], markup: 15 };
+            }
+
+            const container = document.getElementById('ura-container');
+            
+            const renderManualSection = (title, icon, type) => {
+                const rows = item.breakdown[type];
+                return `
+                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
+                    <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="${icon}" class="w-4 h-4 text-slate-500"></i>
+                            <h4 class="text-xs font-black uppercase text-slate-600 tracking-wider">${title}</h4>
+                        </div>
+                        <button onclick="addURARow('${type}')" class="text-[10px] font-black text-indigo-600 hover:underline">+ ADD ROW</button>
+                    </div>
+                    <div id="ura-list-${type}">
+                        ${rows.length === 0 ? `<p class="p-4 text-[10px] text-slate-400 italic">No ${type} components added.</p>` : 
+                        rows.map((r, idx) => `
+                            <div class="flex justify-between items-center px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
+                                <input type="text" value="${r.item || r.role}" placeholder="Label" onchange="updateURARow(${idx}, '${type}', 'item', this.value)" class="text-sm font-bold text-slate-700 bg-transparent border-none focus:ring-0 w-1/2">
+                                <div class="flex items-center space-x-2">
+                                    <input type="number" value="${r.total}" onchange="updateURARow(${idx}, '${type}', 'total', this.value)" class="text-sm font-black text-indigo-600 bg-transparent border-none focus:ring-0 w-20 text-right">
+                                    <button onclick="deleteURARow(${idx}, '${type}')" class="text-slate-300 hover:text-red-500"><i data-lucide="x" class="w-3 h-3"></i></button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `};
+
+            const subtotal = [...item.breakdown.material, ...item.breakdown.labor, ...item.breakdown.plant].reduce((a,c) => a + (parseFloat(c.total) || 0), 0);
+            const finalRate = subtotal * (1 + (item.breakdown.markup / 100));
+
+            container.innerHTML = `
+                <div class="lg:col-span-2">
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
+                        <div class="flex justify-between items-start mb-6">
+                            <div>
+                                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Manual Rate Builder</h3>
+                                <p class="text-sm font-bold text-indigo-600">${item.desc}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Calculated Rate</p>
+                                <p class="text-2xl font-black text-slate-900">$${finalRate.toFixed(2)}</p>
+                            </div>
+                        </div>
+                        ${renderManualSection('Material Components', 'package', 'material')}
+                        ${renderManualSection('Labor Components', 'users', 'labor')}
+                        ${renderManualSection('Plant Components', 'factory', 'plant')}
+                        
+                        <div class="bg-indigo-900 rounded-xl p-6 text-white flex justify-between items-center mt-6">
+                            <div><p class="text-[10px] uppercase opacity-60">Subtotal</p><h4 class="text-xl font-black">$${subtotal.toFixed(2)}</h4></div>
+                            <div class="text-center">
+                                <p class="text-[10px] uppercase opacity-60">Audit Markup %</p>
+                                <input type="number" value="${item.breakdown.markup}" onchange="updateItemMarkup(${item.id}, this.value)" class="bg-white/10 px-3 py-1 rounded-lg mt-1 font-black w-20 text-center border-none focus:ring-2 focus:ring-white">
+                            </div>
+                            <button onclick="applyURAToBoQ(${finalRate})" class="bg-amber-400 text-slate-900 px-4 py-3 rounded-xl font-black text-xs uppercase hover:bg-amber-300 transition-all">Apply to Register</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="space-y-6 text-sm text-slate-500 italic p-4 bg-slate-100/50 rounded-2xl border border-dashed border-slate-300">
+                    <p><i data-lucide="info" class="w-4 h-4 inline-block mr-2"></i> Use this builder to justify custom rates. All sub-components added here will remain linked to this BoQ item.</p>
+                </div>
+            `;
+            toggleBoQView('ura');
+            lucide.createIcons();
+        }
+
+        function addURARow(type) {
+            const item = lineItems.find(i => i.id === currentURAId);
+            item.breakdown[type].push({ item: 'New ' + type, total: 0 });
+            viewURA(currentURAId);
+        }
+
+        function updateURARow(idx, type, field, val) {
+            const item = lineItems.find(i => i.id === currentURAId);
+            item.breakdown[type][idx][field] = field === 'total' ? parseFloat(val) || 0 : val;
+            viewURA(currentURAId);
+        }
+
+        function deleteURARow(idx, type) {
+            const item = lineItems.find(i => i.id === currentURAId);
+            item.breakdown[type].splice(idx, 1);
+            viewURA(currentURAId);
+        }
+
+        function updateItemMarkup(id, val) {
+            const item = lineItems.find(i => i.id === id);
+            item.breakdown.markup = parseFloat(val) || 0;
+            viewURA(id);
+        }
+
+        function applyURAToBoQ(rate) {
+            const item = lineItems.find(i => i.id === currentURAId);
+            item.rate = parseFloat(rate.toFixed(2));
+            toggleBoQView('list');
+            renderBoQ();
+            updateDashboard();
         }
 
         function toggleBoQView(mode) {
@@ -377,94 +474,96 @@
             document.getElementById('qs-ura-view').classList.toggle('hidden', mode === 'list');
         }
 
-        function viewURA(id) {
-            const item = lineItems.find(i => i.id === id);
-            const container = document.getElementById('ura-container');
-            
-            const renderSection = (title, icon, rows) => `
-                <div class="bg-white rounded-xl border border-slate-200 overflow-hidden mb-4">
-                    <div class="bg-slate-50 px-4 py-2 border-b border-slate-200 flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <i data-lucide="${icon}" class="w-4 h-4 text-slate-500"></i>
-                            <h4 class="text-xs font-black uppercase text-slate-600 tracking-wider">${title}</h4>
-                        </div>
-                    </div>
-                    <div>
-                        ${rows.map(r => `
-                            <div class="flex justify-between items-center px-4 py-3 border-b border-slate-100 last:border-0 hover:bg-slate-50/50">
-                                <div>
-                                    <p class="text-sm font-bold text-slate-700">${r.item || r.role}</p>
-                                    <p class="text-[10px] text-slate-400">Qty: ${r.qty || r.hours} × $${r.rate}</p>
-                                </div>
-                                <span class="text-sm font-black text-slate-800">$${r.total.toFixed(2)}</span>
-                            </div>
-                        `).join('')}
-                    </div>
-                </div>
-            `;
+        // --- VERSATILE CALCULATOR LOGIC ---
+        function setCalcMode(mode) {
+            calcMode = mode;
+            const container = document.getElementById('calc-inputs-container');
+            const btns = ['vol', 'area', 'linear'];
+            btns.forEach(b => {
+                const el = document.getElementById('mode-' + b);
+                el.className = b === mode ? 'px-4 py-2 text-xs font-bold rounded-lg bg-white shadow-sm text-indigo-600' : 'px-4 py-2 text-xs font-bold rounded-lg text-slate-500 hover:bg-white/50 transition-all';
+            });
 
-            container.innerHTML = `
-                <div class="lg:col-span-2">
-                    <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-6">
-                        <div class="flex justify-between items-start mb-6">
-                            <div>
-                                <h3 class="text-xl font-black text-slate-800 uppercase tracking-tighter">Unit Rate Analysis (URA)</h3>
-                                <p class="text-sm font-bold text-indigo-600">${item.desc}</p>
-                            </div>
-                            <div class="text-right">
-                                <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Base Rate</p>
-                                <p class="text-2xl font-black text-slate-900">$${item.rate.toFixed(2)} / ${item.unit}</p>
-                            </div>
-                        </div>
-                        ${renderSection('Material Components', 'package', item.breakdown.material)}
-                        ${renderSection('Labor & Man-Hours', 'users', item.breakdown.labor)}
-                        ${renderSection('Plant & Equipment', 'factory', item.breakdown.plant)}
-                        <div class="bg-indigo-900 rounded-xl p-6 text-white flex justify-between items-center mt-6">
-                            <div><p class="text-[10px] uppercase opacity-60">Subtotal</p><h4 class="text-xl font-black">$194.50</h4></div>
-                            <div class="text-center"><p class="text-[10px] uppercase opacity-60">Markup</p><div class="flex items-center bg-white/10 px-3 py-1 rounded-lg mt-1 font-black"><i data-lucide="percent" class="w-3 h-3 mr-1"></i>15%</div></div>
-                            <div class="text-right"><p class="text-[10px] uppercase opacity-60">Final Audit Rate</p><h4 class="text-3xl font-black text-amber-400">$${item.rate.toFixed(2)}</h4></div>
-                        </div>
-                    </div>
-                </div>
-                <div class="space-y-6">
-                    <div class="bg-slate-900 p-6 rounded-2xl text-white">
-                        <h4 class="text-xs font-black uppercase text-indigo-400 tracking-widest mb-4">Sensitivity Analysis</h4>
-                        <div class="space-y-4">
-                            <div class="p-3 bg-white/5 rounded-xl border border-white/10">
-                                <label class="block text-[10px] text-slate-400 mb-1 font-bold">Fuel Index Variance (%)</label>
-                                <input type="range" class="w-full accent-indigo-500">
-                            </div>
-                            <div class="p-3 bg-white/5 rounded-xl border border-white/10">
-                                <label class="block text-[10px] text-slate-400 mb-1 font-bold">Waste Factor (%)</label>
-                                <input type="number" value="5" class="bg-transparent border-none text-xl font-black w-full text-emerald-400 outline-none">
-                            </div>
-                        </div>
-                        <button class="w-full mt-6 bg-indigo-600 py-3 rounded-xl text-xs font-black uppercase tracking-widest hover:bg-indigo-500 transition-all">Apply Adjustments</button>
-                    </div>
-                </div>
-            `;
-            toggleBoQView('ura');
-            lucide.createIcons();
+            if (mode === 'vol') {
+                container.innerHTML = `
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Length (m)</label><input type="number" id="c-l" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Width (m)</label><input type="number" id="c-w" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Depth (m)</label><input type="number" id="c-d" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                `;
+            } else if (mode === 'area') {
+                container.innerHTML = `
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Length (m)</label><input type="number" id="c-l" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Width (m)</label><input type="number" id="c-w" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div><label class="text-[10px] font-black uppercase text-slate-400 mb-2 block">Linear Length (m)</label><input type="number" id="c-l" value="0" oninput="runManualCalc()" class="w-full px-4 py-3 bg-slate-50 border border-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-indigo-500 font-bold text-slate-700"></div>
+                `;
+            }
+            runManualCalc();
         }
 
-        function runCalculations() {
-            const l = parseFloat(document.getElementById('calc-length').value) || 0;
-            const w = parseFloat(document.getElementById('calc-width').value) || 0;
-            const d = parseFloat(document.getElementById('calc-depth').value) || 0;
+        function runManualCalc() {
+            const l = parseFloat(document.getElementById('c-l')?.value) || 0;
+            const w = parseFloat(document.getElementById('c-w')?.value) || 0;
+            const d = parseFloat(document.getElementById('c-d')?.value) || 0;
             
-            const vol = l * w * d;
-            const gross = vol * 1.05;
-            const cost = vol * 185.50;
+            let result = 0;
+            let unit = 'm';
+            if (calcMode === 'vol') { result = l * w * d; unit = 'm³'; }
+            else if (calcMode === 'area') { result = l * w; unit = 'm²'; }
+            else { result = l; unit = 'm'; }
 
-            document.getElementById('calc-output-vol').innerText = vol.toFixed(2);
-            document.getElementById('calc-output-gross').innerText = gross.toFixed(2);
-            document.getElementById('calc-output-cost').innerText = `$${Math.round(cost).toLocaleString()}`;
+            document.getElementById('calc-output-main').innerText = result.toFixed(2);
+            document.getElementById('calc-output-unit').innerText = unit;
+        }
+
+        function pushCalcToNewItem() {
+            const val = parseFloat(document.getElementById('calc-output-main').innerText);
+            const unit = document.getElementById('calc-output-unit').innerText;
+            if (val <= 0) return;
+            
+            openAddItemModal();
+            document.getElementById('new-unit').value = unit;
+            document.getElementById('new-desc').value = 'Measured Trade (' + unit + ')';
+            // We'll store this quantity temporarily or just finish the modal
+        }
+
+        // --- MODAL HELPERS ---
+        function openAddItemModal() {
+            document.getElementById('add-item-modal').classList.add('active');
+        }
+        function closeAddItemModal() {
+            document.getElementById('add-item-modal').classList.remove('active');
+            // Reset inputs
+            document.getElementById('new-desc').value = '';
+            document.getElementById('new-rate').value = '';
+        }
+        function addNewItem() {
+            const desc = document.getElementById('new-desc').value || "Unnamed Item";
+            const unit = document.getElementById('new-unit').value;
+            const rate = parseFloat(document.getElementById('new-rate').value) || 0;
+            const calcVal = parseFloat(document.getElementById('calc-output-main').innerText) || 1;
+
+            const newItem = {
+                id: Date.now(),
+                desc: desc,
+                unit: unit,
+                qty: calcVal,
+                rate: rate,
+                category: 'Manual Entry',
+                breakdown: { material: [], labor: [], plant: [], markup: 15 }
+            };
+
+            lineItems.push(newItem);
+            closeAddItemModal();
+            switchTab('qs');
+            updateDashboard();
         }
 
         // Initialize
         window.onload = () => {
             updateDashboard();
-            runCalculations();
             lucide.createIcons();
         }
     </script>
